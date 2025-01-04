@@ -1,0 +1,104 @@
+blueprint:
+  name: Xiaomi Mi wireless remote switch WXKG01LM (Zigbee MQTT Trigger)
+  description: "Controller automation for executing any kind of action triggered by the provided Xiaomi Mi WXKG01LM switch. \n\n
+    You can have different actions on single press, double press, triple press, quadruple press, many press, hold and release. \n\n
+    Make sure to manually create a separate Text Helper per switch device and define its entity in the automation. It's used
+    to store the last controller event to filter possible empty events."
+  domain: automation
+  input:
+    mqtt_topic:
+      name: MQTT Topic
+      description: Topic of the Xiaomi Mi WXKG01LM
+      default: zigbee2mqtt/<device name>
+    helper_last_controller_event:
+      name: (Required) Helper - Last Controller Event
+      description: Input Text used to store the last event fired by the controller.
+        You will need to manually create a text input Helper entity for this.
+      default: ''
+      selector:
+        entity:
+          domain:
+          - input_text
+          multiple: false
+    single:
+      name: Single button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    double:
+      name: Double button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    triple:
+      name: Triple button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    quadruple:
+      name: Quadruple button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    many:
+      name: Many button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    hold:
+      name: Hold of button
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    release:
+      name: Release of button
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    source_url: https://github.com/foglietti/Home-Assistant-Blueprints/blob/main/xiaomi_mi_wireless_switch_WXKG01LM_z2m.yaml
+mode: queued
+max_exceeded: silent
+trigger:
+- platform: mqtt
+  topic: !input mqtt_topic
+condition:
+- condition: template
+  value_template: '{{ trigger.payload_json.action != '''' }}'
+action:
+- variables:
+    helper_last_controller_event: !input helper_last_controller_event
+    command: '{{ trigger.payload_json.action }}'
+    prev_command: '{{ states(helper_last_controller_event) }}'
+- service: input_text.set_value
+  data:
+    entity_id: !input helper_last_controller_event
+    value: '{{ command }}'
+- choose:
+  - conditions:
+    - '{{ command == "single" }}'
+    sequence: !input single
+  - conditions:
+    - '{{ command == "double" }}'
+    sequence: !input double
+  - conditions:
+    - '{{ command == "triple" }}'
+    sequence: !input triple
+  - conditions:
+    - '{{ command == "quadruple" }}'
+    sequence: !input quadruple
+  - conditions:
+    - '{{ command == "many" }}'
+    sequence: !input many
+  - conditions:
+    - '{{ command == "hold" }}'
+    sequence: !input hold
+  - conditions:
+    - '{{ command == "release" }}'
+    sequence: !input release

@@ -75,7 +75,7 @@ blueprint:
       default: []
       selector:
         action: {}
-    source_url: https://github.com/foglietti/Home-Assistant-Blueprints/blob/main/aqara_wireless_remote_double_switch_WXKG02LM_rev2_z2m.yaml
+#  source_url: https://github.com/foglietti/Home-Assistant-Blueprints/blob/main/aqara_wireless_remote_double_switch_WXKG02LM_rev2_z2m.yaml
 mode: queued
 max_exceeded: silent
 trigger:

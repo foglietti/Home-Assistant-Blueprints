@@ -62,7 +62,7 @@ blueprint:
       default: []
       selector:
         action: {}
-    source_url: https://github.com/foglietti/Home-Assistant-Blueprints/blob/main/xiaomi_mi_wireless_switch_WXKG01LM_z2m.yaml
+#  source_url: https://github.com/foglietti/Home-Assistant-Blueprints/blob/main/xiaomi_mi_wireless_switch_WXKG01LM_z2m.yaml
 mode: queued
 max_exceeded: silent
 trigger:

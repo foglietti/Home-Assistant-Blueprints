@@ -1,0 +1,123 @@
+blueprint:
+  name: Aqara wireless remote switch (double rocker) WXKG02LM_rev2 (Zigbee MQTT Trigger)
+  description: "Controller automation for executing any kind of action triggered by the provided Aqara WXKG02LM_rev2 switch. \n\n
+    You can have different actions on single left press, double left press, hold left press, single right press and double right press, \n
+    hold right press, single both press, double both press, hold both press \n\n
+    Make sure to manually create a separate Text Helper per switch device and define its entity in the automation. It's used
+    to store the last controller event to filter possible empty events."
+  domain: automation
+  input:
+    mqtt_topic:
+      name: MQTT Topic
+      description: Topic of the Aqara WXKG02LM_rev2
+      default: zigbee2mqtt/<device name>
+    helper_last_controller_event:
+      name: (Required) Helper - Last Controller Event
+      description: Input Text used to store the last event fired by the controller.
+        You will need to manually create a text input Helper entity for this.
+      default: ''
+      selector:
+        entity:
+          domain:
+          - input_text
+          multiple: false
+    single_left:
+      name: Single left button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    double_left:
+      name: Double left button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    hold_left:
+      name: Hold of left button
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    single_right:
+      name: Single right button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    double_right:
+      name: Double right button press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    hold_right:
+      name: Hold of right button
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    single_both:
+      name: Single both buttons press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    double_both:
+      name: Double both buttons press
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    hold_both:
+      name: Hold of both buttons
+      description: Action to run
+      default: []
+      selector:
+        action: {}
+    source_url: https://github.com/foglietti/Home-Assistant-Blueprints/blob/main/aqara_wireless_remote_double_switch_WXKG02LM_rev2_z2m.yaml
+mode: queued
+max_exceeded: silent
+trigger:
+- platform: mqtt
+  topic: !input mqtt_topic
+condition:
+- condition: template
+  value_template: '{{ trigger.payload_json.action != '''' }}'
+action:
+- variables:
+    helper_last_controller_event: !input helper_last_controller_event
+    command: '{{ trigger.payload_json.action }}'
+    prev_command: '{{ states(helper_last_controller_event) }}'
+- service: input_text.set_value
+  data:
+    entity_id: !input helper_last_controller_event
+    value: '{{ command }}'
+- choose:
+  - conditions:
+    - '{{ command == "single_left" }}'
+    sequence: !input single_left
+  - conditions:
+    - '{{ command == "double_left" }}'
+    sequence: !input double_left
+  - conditions:
+    - '{{ command == "hold_left" }}'
+    sequence: !input hold_left
+  - conditions:
+    - '{{ command == "single_right" }}'
+    sequence: !input single_right
+  - conditions:
+    - '{{ command == "double_right" }}'
+    sequence: !input double_right
+  - conditions:
+    - '{{ command == "hold_right" }}'
+    sequence: !input hold_right
+  - conditions:
+    - '{{ command == "single_both" }}'
+    sequence: !input single_both
+  - conditions:
+    - '{{ command == "double_both" }}'
+    sequence: !input double_both
+  - conditions:
+    - '{{ command == "hold_both" }}'
+    sequence: !input hold_both

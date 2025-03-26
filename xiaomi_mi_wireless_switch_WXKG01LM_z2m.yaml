@@ -1,25 +1,28 @@
 blueprint:
-  name: Xiaomi Mi wireless remote switch WXKG01LM (Zigbee MQTT Trigger)
-  description: "Controller automation for executing any kind of action triggered by the provided Xiaomi Mi WXKG01LM switch. \n\n
-    You can have different actions on single press, double press, triple press, quadruple press, many press, hold and release. \n\n
-    Make sure to manually create a separate Text Helper per switch device and define its entity in the automation. It's used
-    to store the last controller event to filter possible empty events."
+  name: Xiaomi Mi wireless remote switch WXKG01LM (MQTT Device Trigger)
+  description: |
+    This blueprint enables automation for the Xiaomi Mi WXKG01LM switch using MQTT device triggers.
+    It supports different press types: single, double, triple, quadruple, many presses, hold, and release.
   domain: automation
   input:
-    mqtt_topic:
-      name: MQTT Topic
-      description: Topic of the Xiaomi Mi WXKG01LM
-      default: zigbee2mqtt/<device name>
-    helper_last_controller_event:
-      name: (Required) Helper - Last Controller Event
-      description: Input Text used to store the last event fired by the controller.
-        You will need to manually create a text input Helper entity for this.
-      default: ''
+    mode:
+      name: Automation Modes
+      description: https://www.home-assistant.io/docs/automation/modes/
+      default: parallel
       selector:
-        entity:
-          domain:
-          - input_text
-          multiple: false
+        select:
+          mode: dropdown
+          options:
+            - single
+            - restart
+            - queued
+            - parallel
+    zigbee_device:
+      name: Zigbee Device - Xiaomi Mi WXKG01LM
+      description: Select the correct Zigbee device to use.
+      selector:
+        device:
+          integration: mqtt
     single:
       name: Single button press
       description: Action to run
@@ -62,42 +65,79 @@ blueprint:
       default: []
       selector:
         action: {}
-mode: queued
+mode: !input mode
 max_exceeded: silent
 trigger:
-- platform: mqtt
-  topic: !input mqtt_topic
-condition:
-- condition: template
-  value_template: '{{ trigger.payload_json.action != '''' }}'
+  - platform: device
+    device_id: !input zigbee_device
+    domain: mqtt
+    type: action
+    subtype: single
+    id: single
+  - platform: device
+    device_id: !input zigbee_device
+    domain: mqtt
+    type: action
+    subtype: double
+    id: double
+  - platform: device
+    device_id: !input zigbee_device
+    domain: mqtt
+    type: action
+    subtype: triple
+    id: triple
+  - platform: device
+    device_id: !input zigbee_device
+    domain: mqtt
+    type: action
+    subtype: quadruple
+    id: quadruple
+  - platform: device
+    device_id: !input zigbee_device
+    domain: mqtt
+    type: action
+    subtype: many
+    id: many
+  - platform: device
+    device_id: !input zigbee_device
+    domain: mqtt
+    type: action
+    subtype: hold
+    id: hold
+  - platform: device
+    device_id: !input zigbee_device
+    domain: mqtt
+    type: action
+    subtype: release
+    id: release
+condition: []
 action:
-- variables:
-    helper_last_controller_event: !input helper_last_controller_event
-    command: '{{ trigger.payload_json.action }}'
-    prev_command: '{{ states(helper_last_controller_event) }}'
-- service: input_text.set_value
-  data:
-    entity_id: !input helper_last_controller_event
-    value: '{{ command }}'
-- choose:
-  - conditions:
-    - '{{ command == "single" }}'
-    sequence: !input single
-  - conditions:
-    - '{{ command == "double" }}'
-    sequence: !input double
-  - conditions:
-    - '{{ command == "triple" }}'
-    sequence: !input triple
-  - conditions:
-    - '{{ command == "quadruple" }}'
-    sequence: !input quadruple
-  - conditions:
-    - '{{ command == "many" }}'
-    sequence: !input many
-  - conditions:
-    - '{{ command == "hold" }}'
-    sequence: !input hold
-  - conditions:
-    - '{{ command == "release" }}'
-    sequence: !input release
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: single
+        sequence: !input single
+      - conditions:
+          - condition: trigger
+            id: double
+        sequence: !input double
+      - conditions:
+          - condition: trigger
+            id: triple
+        sequence: !input triple
+      - conditions:
+          - condition: trigger
+            id: quadruple
+        sequence: !input quadruple
+      - conditions:
+          - condition: trigger
+            id: many
+        sequence: !input many
+      - conditions:
+          - condition: trigger
+            id: hold
+        sequence: !input hold
+      - conditions:
+          - condition: trigger
+            id: release
+        sequence: !input release
